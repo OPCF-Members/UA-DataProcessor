@@ -1,3 +1,6 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/docker-publish.yml" />
+  </Folder>
   <Project Path="UA-DataProcessor.csproj" />
 </Solution>
