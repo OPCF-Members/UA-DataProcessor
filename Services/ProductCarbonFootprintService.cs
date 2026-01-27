@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Opc.Ua.Cloud.Client.Models;
 using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Text;
@@ -11,10 +13,10 @@ namespace Opc.Ua.Data.Processor
         private readonly DynamicsDataService _dynamicsDataService = new DynamicsDataService();
         private readonly HttpClient _webClient = new HttpClient()
         {
-            BaseAddress = new Uri("https://uacloudlibrary.opcfoundation.org/"),
+            BaseAddress = new Uri(Environment.GetEnvironmentVariable("UA_CLOUD_LIBRARY_URL")),
             DefaultRequestHeaders =
             {
-                Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes("username" + ":" + "password")))
+                Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("UA_CLOUD_LIBRARY_USERNAME") + ":" + Environment.GetEnvironmentVariable("UA_CLOUD_LIBRARY_PASSWORD"))))
             }
         };
 
@@ -80,13 +82,40 @@ namespace Opc.Ua.Data.Processor
 
         private void PersistInCloudLibrary(string productionLineName, double serialNumber, float pcf)
         {
-            Uri address = new Uri(_webClient.BaseAddress.AbsoluteUri + "infomodel/upload/" + Uri.EscapeDataString(productionLineName));
-            HttpResponseMessage response = _webClient.Send(new HttpRequestMessage(HttpMethod.Get, address));
+            string aasName = "CarbonFootprintAAS_" + productionLineName + "_" + serialNumber.ToString();
+            string pathToAAS = "./NodeSets/CarbonFootprintAAS_" + aasName + ".NodeSet2.xml";
+
+            // write the values to a JSON file
+            Dictionary<string, string> values = new()
+            {
+                { "i=9", "GHG Protocol" },              // PCFCalculationMethod
+                { "i=10", pcf.ToString() },             // PCFCO2eq
+                { "i=11", serialNumber.ToString() },    // PCFReferenceValueForCalculation
+                { "i=12", "gCO2" },                     // PCFQuantityOfMeasureForCalculation
+                { "i=14", "Scope 2 & 3 Emissions" },    // ExplanatoryStatement
+                { "i=19", productionLineName },         // PCFGoodsAddressHandover.CityTown
+                { "i=21", DateTime.UtcNow.ToString() }  // PublicationDate
+            };
+
+            string valuesJson = JsonConvert.SerializeObject(values);
+
+            UANameSpace nameSpace = new();
+            nameSpace.Title = aasName;
+            nameSpace.License = "MIT";
+            nameSpace.CopyrightText = "OPC Foundation";
+            nameSpace.Description = "Sample PCF for Digital Twin Consortium production line simulation";
+            nameSpace.Nodeset.NodesetXml = File.ReadAllText("./CarbonFootprintAAS.NodeSet2.xml").Replace("CarbonFootprintAAS", aasName);
+
+            string body = JsonConvert.SerializeObject(nameSpace);
+
+            Uri address = new Uri(_webClient.BaseAddress.AbsoluteUri + "infomodel/upload?overwrite=true");
+            HttpResponseMessage response = _webClient.Send(new HttpRequestMessage(HttpMethod.Put, address) { Content = new StringContent(body, Encoding.UTF8, "application/json") });
 
             Console.WriteLine("Response: " + response.StatusCode.ToString());
             string responseStr = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             Console.WriteLine(responseStr);
 
+            // TODO: upload values as well
         }
 
         private float RetrieveScope3Emissions()

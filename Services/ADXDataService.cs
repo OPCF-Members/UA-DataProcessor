@@ -18,7 +18,7 @@ namespace Opc.Ua.Data.Processor
             // connect to ADX cluster
             string adxClusterName = Environment.GetEnvironmentVariable("ADX_HOST");
             string adxDBName = Environment.GetEnvironmentVariable("ADX_DB");
-            string aadAppID = Environment.GetEnvironmentVariable("AAD_APPLICATION_ID");
+            string aadAppID = Environment.GetEnvironmentVariable("ADX_APPLICATION_ID");
 
             if (!string.IsNullOrEmpty(adxClusterName) && !string.IsNullOrEmpty(adxDBName))
             {
