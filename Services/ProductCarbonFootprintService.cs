@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.WebUtilities;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Opc.Ua.Cloud.Client.Models;
 using System.Collections.Concurrent;
@@ -97,8 +98,6 @@ namespace Opc.Ua.Data.Processor
                 { "i=21", DateTime.UtcNow.ToString() }  // PublicationDate
             };
 
-            string valuesJson = JsonConvert.SerializeObject(values);
-
             UANameSpace nameSpace = new();
             nameSpace.Title = aasName;
             nameSpace.License = "MIT";
@@ -106,16 +105,23 @@ namespace Opc.Ua.Data.Processor
             nameSpace.Description = "Sample PCF for Digital Twin Consortium production line simulation";
             nameSpace.Nodeset.NodesetXml = File.ReadAllText("./CarbonFootprintAAS.NodeSet2.xml").Replace("CarbonFootprintAAS", aasName);
 
-            string body = JsonConvert.SerializeObject(nameSpace);
+            var url = QueryHelpers.AddQueryString(
+                _webClient.BaseAddress.AbsoluteUri + "infomodel/upload",
+                new Dictionary<string, string> {
+                    ["overwrite"] = "true",
+                    ["values"] = JsonConvert.SerializeObject(values)
+                }
+            );
 
-            Uri address = new Uri(_webClient.BaseAddress.AbsoluteUri + "infomodel/upload?overwrite=true");
-            HttpResponseMessage response = _webClient.Send(new HttpRequestMessage(HttpMethod.Put, address) { Content = new StringContent(body, Encoding.UTF8, "application/json") });
+            HttpResponseMessage response = _webClient.Send(new HttpRequestMessage(HttpMethod.Put, new Uri(url)) {
+                Content = new StringContent(JsonConvert.SerializeObject(nameSpace),
+                Encoding.UTF8, "application/json")
+            });
 
-            Console.WriteLine("Response: " + response.StatusCode.ToString());
-            string responseStr = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-            Console.WriteLine(responseStr);
-
-            // TODO: upload values as well
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Error uploading PCF to Cloud Library: " + response.StatusCode.ToString());
+            }
         }
 
         private float RetrieveScope3Emissions()
