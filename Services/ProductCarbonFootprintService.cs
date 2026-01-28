@@ -122,6 +122,10 @@ namespace Opc.Ua.Data.Processor
             {
                 Console.WriteLine("Error uploading PCF to Cloud Library: " + response.StatusCode.ToString());
             }
+            else
+            {
+                Console.WriteLine("Successfully uploaded PCF to Cloud Library for " + aasName);
+            }
         }
 
         private float RetrieveScope3Emissions()
