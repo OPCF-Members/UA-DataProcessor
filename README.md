@@ -1,5 +1,9 @@
 # UA-DataProcessor
-Data Processor for the UA Cloud Initiative. Runs in a Docker container and processes data from connected data sources (see services directory) and outputs the processed data as nodeset files into UA Cloud Library.
+Data Processor for the UA Cloud Initiative. Runs in a Docker container and processes data from connected data sources (see DataServices directory) and outputs the processed data as nodeset files into UA Cloud Library.
+
+Currently, available data services are for Azure Data Explorer and Dynamics365, but other data services can be added by implementing the simple IDataService interface.
+
+In terms of data processors, currently a Product Carbon Footprint (PCF) processor following the Green-House Gas (GHG) Protocol calculation method is implemened.
 
 # Required Environment Variables:
 - `UA_CLOUD_LIBRARY_URL`: The URL for the UA Cloud Library instance to upload nodeset files to.
