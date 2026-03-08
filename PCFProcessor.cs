@@ -94,13 +94,19 @@ namespace Opc.Ua.Data.Processor
             // write the values to a JSON file
             Dictionary<string, string> values = new()
             {
-                { "i=9", "GHG Protocol" },              // PCFCalculationMethod
-                { "i=10", pcf.ToString() },             // PCFCO2eq
-                { "i=11", serialNumber.ToString() },    // PCFReferenceValueForCalculation
-                { "i=12", "gCO2" },                     // PCFQuantityOfMeasureForCalculation
-                { "i=14", "Scope 2 & 3 Emissions" },    // ExplanatoryStatement
-                { "i=19", productionLineName },         // PCFGoodsAddressHandover.CityTown
-                { "i=21", DateTime.UtcNow.ToString() }  // PublicationDate
+                { "i=2", productionLineName + "_" + serialNumber.ToString() }, // UniqueProductIdentifier
+                { "i=3", "1.0" },                       // DppSchemaVersion
+                { "i=4", "Released" },                  // DppStatus
+                { "i=5", DateTime.UtcNow.ToString() },  // LastUpdate
+                { "i=6", "OPC Foundation" },            // EconomicOperatorId
+                { "i=11", "GHG Protocol" },             // PCFCalculationMethod
+                { "i=12", pcf.ToString() },             // PCFCO2eq
+                { "i=13", serialNumber.ToString() },    // PCFReferenceValueForCalculation
+                { "i=14", "gCO2" },                     // PCFQuantityOfMeasureForCalculation
+                { "i=15", "Production & Usage" },       // PCFLifeCyclePhase
+                { "i=16", "Scope 2 & 3 Emissions" },    // ExplanatoryStatement
+                { "i=21", productionLineName },         // PCFGoodsAddressHandover.CityTown
+                { "i=23", DateTime.UtcNow.ToString() }  // PublicationDate
             };
 
             UANameSpace nameSpace = new();
